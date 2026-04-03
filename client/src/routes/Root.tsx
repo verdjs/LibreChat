@@ -59,7 +59,7 @@ export default function Root() {
     logout('/login?redirect=false');
   };
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !config?.guestMode) {
     return null;
   }
 

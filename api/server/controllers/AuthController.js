@@ -1,8 +1,10 @@
 const cookies = require('cookie');
 const jwt = require('jsonwebtoken');
 const openIdClient = require('openid-client');
+const { randomBytes } = require('node:crypto');
 const { logger } = require('@librechat/data-schemas');
 const { isEnabled, findOpenIDUser } = require('@librechat/api');
+const { SystemRoles } = require('librechat-data-provider');
 const {
   requestPasswordReset,
   setOpenIDAuthTokens,
@@ -13,12 +15,46 @@ const {
 const {
   deleteAllUserSessions,
   getUserById,
+  createUser,
   findSession,
   updateUser,
   findUser,
 } = require('~/models');
 const { getGraphApiToken } = require('~/server/services/GraphTokenService');
 const { getOpenIdConfig, getOpenIdEmail } = require('~/strategies');
+
+const GUEST_EMAIL = process.env.GUEST_USER_EMAIL || 'guest@librechat.local';
+
+/**
+ * Finds or creates the shared guest user used in GUEST_MODE.
+ * The guest user is a regular local user with a stable email address and no password.
+ * It is created once and reused for every unauthenticated request.
+ * @returns {Promise<object>} User document without sensitive fields
+ */
+async function getOrCreateGuestUser() {
+  let user = await findUser({ email: GUEST_EMAIL }, '-password -__v -totpSecret -backupCodes');
+  if (!user) {
+    const created = await createUser(
+      {
+        provider: 'local',
+        email: GUEST_EMAIL,
+        username: 'guest',
+        name: 'Guest',
+        avatar: null,
+        role: SystemRoles.USER,
+        emailVerified: true,
+        // Use a random, non-bcrypt-hashed value so the guest account
+        // can never be used to log in via password-based local auth.
+        password: randomBytes(32).toString('hex'),
+      },
+      undefined,
+      true,
+      false,
+    );
+    user = await getUserById(created._id.toString(), '-password -__v -totpSecret -backupCodes');
+  }
+  return user;
+}
 
 const registrationController = async (req, res) => {
   try {
@@ -130,6 +166,15 @@ const refreshController = async (req, res) => {
   /** For non-OpenID users, read refresh token from cookies */
   const refreshToken = parsedCookies.refreshToken;
   if (!refreshToken) {
+    if (isEnabled(process.env.GUEST_MODE)) {
+      try {
+        const guestUser = await getOrCreateGuestUser();
+        const token = await setAuthTokens(guestUser._id.toString(), res);
+        return res.status(200).send({ token, user: guestUser });
+      } catch (err) {
+        logger.error('[refreshController] Guest mode auto-auth failed:', err);
+      }
+    }
     return res.status(200).send('Refresh token not provided');
   }
 

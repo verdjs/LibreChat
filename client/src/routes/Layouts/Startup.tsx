@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import type { TStartupConfig } from 'librechat-data-provider';
 import { TranslationKeys, useLocalize } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
@@ -51,6 +51,10 @@ export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: b
     setError(null);
     setHeaderText(null);
   }, [location.pathname]);
+
+  if (data?.guestMode) {
+    return <Navigate to="/c/new" replace />;
+  }
 
   const contextValue = {
     error,

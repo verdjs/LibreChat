@@ -825,6 +825,7 @@ export type TStartupConfig = {
   sharePointPickerSharePointScope?: string;
   openidReuseTokens?: boolean;
   minPasswordLength?: number;
+  guestMode?: boolean;
   webSearch?: {
     searchProvider?: SearchProviders;
     scraperProvider?: ScraperProviders;

@@ -24,6 +24,7 @@ import {
   useLoginUserMutation,
   useLogoutUserMutation,
   useRefreshTokenMutation,
+  useGetStartupConfig,
 } from '~/data-provider';
 import { TAuthConfig, TUserContext, TAuthContext, TResError } from '~/common';
 import { SESSION_KEY, isSafeRedirect, getPostLoginRedirect } from '~/utils';
@@ -46,6 +47,9 @@ const AuthContextProvider = ({
   const [error, setError] = useState<string | undefined>(undefined);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const setQueriesEnabled = useSetRecoilState<boolean>(store.queriesEnabled);
+
+  const { data: startupConfig } = useGetStartupConfig();
+  const guestMode = startupConfig?.guestMode === true;
 
   const { data: userRole = null } = useGetRole(SystemRoles.USER, {
     enabled: !!(isAuthenticated && (user?.role ?? '')),
@@ -191,7 +195,7 @@ const AuthContextProvider = ({
           return;
         }
         console.log('Token is not present. User is not authenticated.');
-        if (authConfig?.test === true) {
+        if (authConfig?.test === true || guestMode) {
           return;
         }
         navigate(buildLoginRedirectUrl());
@@ -201,7 +205,7 @@ const AuthContextProvider = ({
           return;
         }
         console.log('refreshToken mutation error:', error);
-        if (authConfig?.test === true) {
+        if (authConfig?.test === true || guestMode) {
           return;
         }
         navigate(buildLoginRedirectUrl());
@@ -216,7 +220,7 @@ const AuthContextProvider = ({
     }
     if (userQuery.data) {
       setUser(userQuery.data);
-    } else if (userQuery.isError) {
+    } else if (userQuery.isError && !guestMode) {
       doSetError((userQuery.error as Error).message);
       navigate(buildLoginRedirectUrl(), { replace: true });
     }

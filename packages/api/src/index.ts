@@ -39,6 +39,8 @@ export * from './agents';
 export * from './prompts';
 /* Endpoints */
 export * from './endpoints';
+/* Pollinations */
+export * from './pollinations';
 /* Files */
 export * from './files';
 /* Storage */

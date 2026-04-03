@@ -155,6 +155,34 @@ Open source, actively developed, and built for anyone who values control over th
 
 ---
 
+## 🌸 Pollinations Integration
+
+LibreChat ships with **[Pollinations](https://pollinations.ai)** as its primary generation backend.
+Every message is automatically routed through a lightweight intent classifier before reaching the model:
+
+| Intent | Flow |
+|--------|------|
+| **Text** | Classified by `nova-fast` → answered by `nova-fast` (or any model you choose) |
+| **Image** | Classified by `nova-fast` → prompt enhanced by `nova-fast` → image generated with `zimage` |
+| **Video** | Classified by `nova-fast` → _coming soon_ placeholder returned |
+
+### Setup
+
+1. Get a free API key at <https://enter.pollinations.ai>.
+2. Add it to your `.env`:
+   ```
+   POLLINATIONS_API_KEY=your_pollinations_api_key
+   ```
+3. Copy `librechat.example.yaml` → `librechat.yaml` (or use `CONFIG_PATH`). The **Pollinations** endpoint is already the first entry under `endpoints.custom`.
+
+### Available models (sample)
+
+`nova-fast` · `openai` · `openai-fast` · `openai-large` · `gemini-fast` · `claude-fast` · `deepseek` · `mistral` · `qwen-coder` · `grok` · `perplexity-fast` · `kimi` — plus many more. Set `fetch: true` in the YAML to auto-populate all current models from the Pollinations `/v1/models` endpoint.
+
+> **Key:** Use an `sk_` prefixed secret key for server-side requests. `pk_` keys work client-side but are rate-limited.
+
+---
+
 ## 🌐 Resources
 
 **GitHub Repo:**

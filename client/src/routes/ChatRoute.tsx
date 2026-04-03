@@ -200,7 +200,7 @@ export default function ChatRoute() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !startupConfig?.guestMode) {
     return null;
   }
 

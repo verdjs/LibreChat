@@ -9,6 +9,7 @@ const router = express.Router();
 const emailLoginEnabled =
   process.env.ALLOW_EMAIL_LOGIN === undefined || isEnabled(process.env.ALLOW_EMAIL_LOGIN);
 const passwordResetEnabled = isEnabled(process.env.ALLOW_PASSWORD_RESET);
+const guestMode = isEnabled(process.env.GUEST_MODE);
 
 const sharedLinksEnabled =
   process.env.ALLOW_SHARED_LINKS === undefined || isEnabled(process.env.ALLOW_SHARED_LINKS);
@@ -77,6 +78,7 @@ function buildSharedPayload() {
     publicSharedLinksEnabled,
     analyticsGtmId: process.env.ANALYTICS_GTM_ID,
     openidReuseTokens,
+    guestMode,
   };
 
   const minPasswordLength = parseInt(process.env.MIN_PASSWORD_LENGTH, 10);
